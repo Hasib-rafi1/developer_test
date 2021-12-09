@@ -19,6 +19,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'badge',
         'password',
     ];
 
@@ -70,11 +71,11 @@ class User extends Authenticatable
      */
     public function achievementLesson()
     {
-        return $this->belongsToMany(Achievement::class)->wherePivot('group', null ,'lesson');
+        return $this->belongsToMany(Achievement::class)->wherePivot('group', 'lesson');
     }
 
     public function achievementComments()
     {
-        return $this->belongsToMany(Achievement::class)->wherePivot('group', null,'comment');
+        return $this->belongsToMany(Achievement::class)->wherePivot('group', 'comment');
     }
 }

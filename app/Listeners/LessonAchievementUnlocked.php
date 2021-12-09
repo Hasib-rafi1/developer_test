@@ -1,12 +1,13 @@
 <?php
 namespace App\Listeners;
 
-use App\Events\CommentWritten;
+use App\Events\BadgeUnlockedEvent;
+use App\Events\LessonWatched;
 use App\Models\Achievement;
 use Illuminate\Support\Facades\DB;
 
 
-class AchievementUnlocked
+class LessonAchievementUnlocked
 {
     /**
      * Create the event listener.
@@ -21,24 +22,27 @@ class AchievementUnlocked
     /**
      * Handle the event.
      *
-     * @param  \App\Events\CommentWritten  $event
+     * @param  LessonWatched $event
      * @return void
      */
-    public function handle(CommentWritten $event)
+    public function handle(LessonWatched $event)
     {
         // Access the order using $event->order...
-        $comment = $event->comment;
-        $user = $comment->user();
+        $lesson = $event->lesson;
+        $user = $event->user;
 
-        $comments = $user->comments();
-        $numberOfComments = $comments->count();
+        $watched = $user->watched();
+        $numberOfWatched = $watched->count();
 
         $achievement = DB::table('achievements')
-            ->where('number', $numberOfComments)->first();
+            ->where('number', $numberOfWatched)
+            ->where('group', 'lesson')
+            ->first();
         if (!$achievement) {
             DB::table('achievement_users')->insert(
-                ['user_id' => $user->id, 'achievement_id' => $achievement->id, 'group' => $achievement->group]
+                ['user_id' => $user->getKey(), 'achievement_id' => $achievement->id, 'group' => $achievement->group]
             );
+            event(new BadgeUnlockedEvent($user));
         }
 
 

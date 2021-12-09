@@ -1,12 +1,12 @@
 <?php
 namespace App\Listeners;
 
-use App\Events\LessonWatched;
+use App\Events\BadgeUnlockedEvent;
 use App\Models\Achievement;
 use Illuminate\Support\Facades\DB;
 
 
-class LessonAchievementUnlocked
+class BadgeUnlocked
 {
     /**
      * Create the event listener.
@@ -21,27 +21,32 @@ class LessonAchievementUnlocked
     /**
      * Handle the event.
      *
-     * @param  LessonWatched $event
+     * @param  BadgeUnlockedEvent $event
      * @return void
      */
-    public function handle(LessonWatched $event)
+    public function handle(BadgeUnlockedEvent $event)
     {
         // Access the order using $event->order...
-        $lesson = $event->lesson;
         $user = $event->user;
 
-        $watched = $user->watched();
-        $numberOfWatched = $watched->count();
 
-        $achievement = DB::table('achievements')
-            ->where('number', $numberOfWatched)
-            ->where('group', 'lesson')
-            ->first();
-        if (!$achievement) {
-            DB::table('achievement_users')->insert(
-                ['user_id' => $user->getKey(), 'achievement_id' => $achievement->id, 'group' => $achievement->group]
-            );
-        }
+        $numberOfAchivement = $user->achievementComments()->count() + $user->achievementLesson()->count() ;
+
+
+       $badge = "Beginner";
+       if($numberOfAchivement ==4){
+           $badge =  "Intermediate";
+       }elseif ($numberOfAchivement ==8){
+           $badge =  "Advanced";
+       }elseif ($numberOfAchivement ==10){
+           $badge =  "Master";
+       }else{
+           $badge = $user->badge;
+       }
+       $user->badge = $badge;
+
+       $user->save();
+
 
 
 
